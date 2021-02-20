@@ -7,23 +7,31 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 
-app.use(cors);
-app.use(bodyParser);
+app.use(cors());
+app.use(bodyParser.json());
 
-app.get('/posting', (req, res) => {
+app.get('/postings', (req, res) => {
     db.query('SELECT * FROM postings').then(results => {
       console.log(results)
-      res.json({ items: results })
+      res.json({ postingData: results })
     });
   })
 
 app.post('/postings', (req, res) => {
+    res.sendStatus(200)
     db.query(
-      'INSERT INTO posting (id, title, description, category, location, image, price, dateOfPosting, delivery, sellerName, sellerPhone, sellerEmail) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+      'INSERT INTO postings (id, title, description, category, location, image, price, dateOfPosting, delivery, sellerName, sellerPhone, sellerEmail) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
       [uuidv4(), req.body.title, req.body.description, req.body.category, req.body.location,
         req.body.image, req.body.price, req.body.dateOfPosting, req.body.delivery,
         req.body.sellerName, req.body.sellerPhone, req.body.sellerEmail]
       )
+})
+
+app.get('/postings/category', (req,res) => {
+    db.query('SELECT * FROM categories').then(results=> {
+      console.log(results)
+      res.json({ categoryData: results})
+    });
 })
 
   /* DB init */
@@ -53,6 +61,10 @@ Promise.all(
             email VARCHAR(255),
             location VARCHAR(255),
             UNIQUE (username)
+        )`),
+        db.query(`CREATE TABLE IF NOT EXISTS categories(
+          id VARCHAR(255) PRIMARY KEY,
+          categoryName VARCHAR(255)
         )`)
   
         // Add more table create statements if you need more tables
