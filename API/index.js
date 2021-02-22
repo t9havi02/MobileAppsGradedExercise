@@ -34,6 +34,30 @@ app.get('/postings/category', (req,res) => {
     });
 })
 
+app.post('/postings/category', (req, res) => {
+  res.sendStatus(200)
+  db.query(
+    'INSERT INTO categories (id, categoryName) VALUES (?, ?)',
+    [uuidv4(), req.body.categoryName]
+  )
+})
+
+app.get('/postings/category/:categoryId', (req, res) => {
+  var categoryId = req.params.categoryId;
+  db.query('SELECT * FROM postings WHERE category = ?', [categoryId]).then(results => {
+    console.log(results)
+    res.json({ postingsData: results})
+  })
+})
+
+app.get('/postings/:postingId', (req, res) => {
+  var postingId = req.params.postingId;
+  console.log(postingId)
+  db.query('SELECT * FROM postings WHERE id = ?', [postingId]).then(results => {
+    console.log(results)
+    res.json({ results })
+  })
+})
   /* DB init */
 Promise.all(
     [
