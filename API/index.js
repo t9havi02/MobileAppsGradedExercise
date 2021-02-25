@@ -2,9 +2,14 @@ const db = require('./db');
 const port = 4000;
 const { v4: uuidv4 } = require('uuid');
 const express = require('express');
+const Ajv = require('ajv').default;
+const postingsSchema = require('./schemas/postingsSchema.json')
+const categorySchema = require('./schemas/categorySchema.json')
+const userSchema = require('./schemas/userSchema.json')
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+
 
 
 app.use(cors());
@@ -18,13 +23,21 @@ app.get('/postings', (req, res) => {
   })
 
 app.post('/postings', (req, res) => {
-    res.sendStatus(200)
-    db.query(
-      'INSERT INTO postings (id, title, description, category, location, image, price, dateOfPosting, delivery, sellerName, sellerPhone, sellerEmail) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
-      [uuidv4(), req.body.title, req.body.description, req.body.category, req.body.location,
-        req.body.image, req.body.price, req.body.dateOfPosting, req.body.delivery,
-        req.body.sellerName, req.body.sellerPhone, req.body.sellerEmail]
-      )
+    const ajv = new Ajv();
+    const validate = ajv.compile(postingsSchema)
+    const valid = validate(req.body)
+    if(valid == true){
+      db.query(
+        'INSERT INTO postings (id, title, description, category, location, image, price, dateOfPosting, delivery, sellerName, sellerPhone, sellerEmail) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+        [uuidv4(), req.body.title, req.body.description, req.body.category, req.body.location,
+          req.body.image, req.body.price, req.body.dateOfPosting, req.body.delivery,
+          req.body.sellerName, req.body.sellerPhone, req.body.sellerEmail]
+        )
+        res.send("OK")
+    } else {
+      res.send("Not OK")
+    }
+
 })
 
 //Specific post related calls
@@ -41,11 +54,18 @@ app.get('/postings/:postingId', (req, res) => {
 app.post('/postings/:postingId', (req, res) => {
   var postingId = req.params.postingId;
   console.log(postingId)
-  res.sendStatus(200)
-  db.query('UPDATE postings SET title = ?, description = ?, category = ?, location = ?, image = ?, price = ?, dateOfPosting = ?, delivery = ?, sellerName = ?, sellerPhone = ?, sellerEmail = ? WHERE id = ?',
-  [req.body.title, req.body.description, req.body.category, req.body.location,
-    req.body.image, req.body.price, req.body.dateOfPosting, req.body.delivery,
-    req.body.sellerName, req.body.sellerPhone, req.body.sellerEmail, postingId])
+  const ajv = new Ajv();
+  const validate = ajv.compile(postingsSchema)
+  const valid = validate(req.body)
+  if(valid == true){
+    db.query('UPDATE postings SET title = ?, description = ?, category = ?, location = ?, image = ?, price = ?, dateOfPosting = ?, delivery = ?, sellerName = ?, sellerPhone = ?, sellerEmail = ? WHERE id = ?',
+    [req.body.title, req.body.description, req.body.category, req.body.location,
+      req.body.image, req.body.price, req.body.dateOfPosting, req.body.delivery,
+      req.body.sellerName, req.body.sellerPhone, req.body.sellerEmail, postingId])
+      res.send("OK")
+  } else {
+    res.send("Not OK")
+  }
 })
 
 //Category related calls
@@ -58,11 +78,18 @@ app.get('/postings/category', (req,res) => {
 })
 
 app.post('/postings/category', (req, res) => {
-  res.sendStatus(200)
-  db.query(
-    'INSERT INTO categories (id, categoryName) VALUES (?, ?)',
-    [uuidv4(), req.body.categoryName]
+  const ajv = new Ajv();
+  const validate = ajv.compile(categorySchema)
+  const valid = validate(req.body)
+  if(valid == true){
+    res.sendStatus(200)
+    db.query(
+      'INSERT INTO categories (id, categoryName) VALUES (?, ?)',
+      [uuidv4(), req.body.categoryName]
   )
+  } else {
+    res.send("Not OK")
+  }
 })
 
 app.get('/postings/category/:categoryId', (req, res) => {
@@ -73,6 +100,28 @@ app.get('/postings/category/:categoryId', (req, res) => {
   })
 })
 
+//User related calls
+
+app.get('/users', (req, res) => {
+  db.query('SELECT id, username, firstname, lastname, dateJoined FROM users').then(results => {
+    console.log(results)
+    res.json({ userData: results })
+  })
+})
+
+app.post('/users', (req, res) => {
+  const ajv = new Ajv();
+  const validate = ajv.compile(userSchema)
+  const valid = validate(req.body)
+  if(valid == true){
+    db.query('INSERT INTO users (id, username, password, firstname, lastname, dateJoined, email, location) VALUES (?,?,?,?,?,?,?,?)',
+    [uuidv4(), req.body.username, req.body.password, req.body.firstname, req.body.lastname,
+      req.body.dateJoined, req.body.email, req.body.location])
+      res.send("OK")
+  } else {
+    res.send("Not OK")
+  }
+})
 
   /* DB init */
 Promise.all(

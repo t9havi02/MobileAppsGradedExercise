@@ -1,0 +1,149 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The root schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "default": {},
+    "examples": [
+        {
+            "title": "2kg dumbbells",
+            "description": "Very good condition, pair of 2kg dumbbells!",
+            "category": "Fitness",
+            "location": "Oulu, FI",
+            "image": "http://image.thissite.com/images/123.png",
+            "price": 23.99,
+            "dateOfPosting": "2021-01-01",
+            "delivery": "Pick up",
+            "sellerName": "Mike Jones",
+            "sellerPhone": "0881231234",
+            "sellerEmail": "seller@thisstore.com"
+        }
+    ],
+    "required": [
+        "title",
+        "description",
+        "category",
+        "location",
+        "image",
+        "price",
+        "dateOfPosting",
+        "delivery",
+        "sellerName",
+        "sellerPhone",
+        "sellerEmail"
+    ],
+    "properties": {
+        "title": {
+            "$id": "#/properties/title",
+            "type": "string",
+            "title": "The title schema",
+            "description": "Title of the posting ranging from 5 to 60 characters.",
+            "default": "",
+            "examples": [
+                "2kg dumbbells"
+            ]
+        },
+        "description": {
+            "$id": "#/properties/description",
+            "type": "string",
+            "title": "Description of item(s) in posting up to 480 characters.",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "Very good condition, pair of 2kg dumbbells!"
+            ]
+        },
+        "category": {
+            "$id": "#/properties/category",
+            "type": "string",
+            "title": "A category for the item(s) posting.",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "Fitness"
+            ]
+        },
+        "location": {
+            "$id": "#/properties/location",
+            "type": "string",
+            "title": "The location of the posting item(s).",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "Oulu, FI"
+            ]
+        },
+        "image": {
+            "$id": "#/properties/image",
+            "type": "string",
+            "title": "URI for the image to be shown the posting.",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "http://image.thissite.com/images/123.png"
+            ]
+        },
+        "price": {
+            "$id": "#/properties/price",
+            "type": "number",
+            "title": "Price of the item(s) in posting",
+            "description": "An explanation about the purpose of this instance.",
+            "default": 0.0,
+            "examples": [
+                23.99
+            ]
+        },
+        "dateOfPosting": {
+            "$id": "#/properties/dateOfPosting",
+            "type": "string",
+            "title": "Creation date of the posting in RFC3339 full-date format.",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "2021-01-01"
+            ]
+        },
+        "delivery": {
+            "$id": "#/properties/delivery",
+            "type": "string",
+            "title": "Method of delivery for the item(s) in the posting.",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "Pick up"
+            ]
+        },
+        "sellerName": {
+            "$id": "#/properties/sellerName",
+            "type": "string",
+            "title": "Name of the seller",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "Mike Jones"
+            ]
+        },
+        "sellerPhone": {
+            "$id": "#/properties/sellerPhone",
+            "type": "string",
+            "title": "Phone number of the seller",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "0881231234"
+            ]
+        },
+        "sellerEmail": {
+            "$id": "#/properties/sellerEmail",
+            "type": "string",
+            "title": "Email of the seller",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "seller@thisstore.com"
+            ]
+        }
+    },
+    "additionalProperties": false
+}

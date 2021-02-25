@@ -1,0 +1,101 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "User account schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "default": {},
+    "examples": [
+        {
+            "username": "ExampleSeller",
+            "password": "thisismypassword",
+            "firstname": "Mike",
+            "lastname": "Jones",
+            "dateJoined": "2020-01-01",
+            "email": "mikejones@selling.com",
+            "location": "Oulu, Finland"
+        }
+    ],
+    "required": [
+        "username",
+        "password",
+        "firstname",
+        "lastname",
+        "dateJoined",
+        "email",
+        "location"
+    ],
+    "properties": {
+        "username": {
+            "$id": "#/properties/username",
+            "type": "string",
+            "title": "Publicly visible username of the use account. 4-24 characters.",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "ExampleSeller"
+            ]
+        },
+        "password": {
+            "$id": "#/properties/password",
+            "type": "string",
+            "title": "User-defined password of the account. Minimum length: 8 characters.",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "thisismypassword"
+            ]
+        },
+        "firstname": {
+            "$id": "#/properties/firstname",
+            "type": "string",
+            "title": "First name of the user",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "Mike"
+            ]
+        },
+        "lastname": {
+            "$id": "#/properties/lastname",
+            "type": "string",
+            "title": "Last name of the user",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "Jones"
+            ]
+        },
+        "dateJoined": {
+            "$id": "#/properties/dateJoined",
+            "type": "string",
+            "title": "Timestamp of the user creation date in RFC3339 full-date format.",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "2020-01-01"
+            ]
+        },
+        "email": {
+            "$id": "#/properties/email",
+            "type": "string",
+            "title": "Email address of the user",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "mikejones@selling.com"
+            ]
+        },
+        "location": {
+            "$id": "#/properties/location",
+            "type": "string",
+            "title": "Location of the user in format CITY, COUNTRY.",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "Oulu, Finland"
+            ]
+        }
+    },
+    "additionalProperties": false
+}
