@@ -27,11 +27,34 @@ app.post('/postings', (req, res) => {
       )
 })
 
+//Specific post related calls
+
+app.get('/postings/:postingId', (req, res) => {
+  var postingId = req.params.postingId;
+  console.log(postingId)
+  db.query('SELECT * FROM postings WHERE id = ?', [postingId]).then(results => {
+    console.log(results)
+    res.json( results )
+  })
+})
+
+app.post('/postings/:postingId', (req, res) => {
+  var postingId = req.params.postingId;
+  console.log(postingId)
+  res.sendStatus(200)
+  db.query('UPDATE postings SET title = ?, description = ?, category = ?, location = ?, image = ?, price = ?, dateOfPosting = ?, delivery = ?, sellerName = ?, sellerPhone = ?, sellerEmail = ? WHERE id = ?',
+  [req.body.title, req.body.description, req.body.category, req.body.location,
+    req.body.image, req.body.price, req.body.dateOfPosting, req.body.delivery,
+    req.body.sellerName, req.body.sellerPhone, req.body.sellerEmail, postingId])
+})
+
+//Category related calls
+
 app.get('/postings/category', (req,res) => {
-    db.query('SELECT * FROM categories').then(results=> {
-      console.log(results)
-      res.json({ categoryData: results})
-    });
+  db.query('SELECT * FROM categories').then(results=> {
+    console.log(results)
+    res.json({ categoryData: results})
+  });
 })
 
 app.post('/postings/category', (req, res) => {
@@ -50,14 +73,7 @@ app.get('/postings/category/:categoryId', (req, res) => {
   })
 })
 
-app.get('/postings/:postingId', (req, res) => {
-  var postingId = req.params.postingId;
-  console.log(postingId)
-  db.query('SELECT * FROM postings WHERE id = ?', [postingId]).then(results => {
-    console.log(results)
-    res.json({ results })
-  })
-})
+
   /* DB init */
 Promise.all(
     [
