@@ -1,6 +1,7 @@
 const db = require('./db');
 const port = 4000;
 const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs');
 const express = require('express');
 const Ajv = require('ajv').default;
 const postingsSchema = require('./schemas/postingsSchema.json')
@@ -14,6 +15,45 @@ const cors = require('cors');
 
 app.use(cors());
 app.use(bodyParser.json());
+
+//Authentication 
+
+const passport = require('passport');
+const BasicStrategy = require('passport-http').BasicStrategy;
+
+passport.use(new BasicStrategy(
+  function(username, password, done) {
+
+    db.query('SELECT * FROM users WHERE username = ?', [username]).then(results => {
+      const user = results[0];
+    
+    console.log(user)
+    if(user == undefined) {
+      // Username not found
+      console.log("HTTP Basic username not found");
+      return done(null, false, { message: "HTTP Basic username not found" });
+    }
+
+    /* Verify password match */
+    if(bcrypt.compareSync(password, user.password) == false) {
+      // Password does not match
+      console.log("HTTP Basic password not matching username");
+      return done(null, false, { message: "HTTP Basic password not found" });
+    }
+    return done(null, user);
+  })
+}
+));
+
+app.get('/httpBasicProtectedResource',
+        passport.authenticate('basic', { session: false }),
+        (req, res) => {
+  res.json({
+    yourProtectedResource: "profit"
+  });
+});
+
+//General posting related calls
 
 app.get('/postings', (req, res) => {
     db.query('SELECT * FROM postings').then(results => {
@@ -114,8 +154,9 @@ app.post('/users', (req, res) => {
   const validate = ajv.compile(userSchema)
   const valid = validate(req.body)
   if(valid == true){
+    const hashedPassword = bcrypt.hashSync(req.body.password, 6)
     db.query('INSERT INTO users (id, username, password, firstname, lastname, dateJoined, email, location) VALUES (?,?,?,?,?,?,?,?)',
-    [uuidv4(), req.body.username, req.body.password, req.body.firstname, req.body.lastname,
+    [uuidv4(), req.body.username, hashedPassword, req.body.firstname, req.body.lastname,
       req.body.dateJoined, req.body.email, req.body.location])
       res.send("OK")
   } else {
