@@ -26,8 +26,6 @@ passport.use(new BasicStrategy(
 
     db.query('SELECT * FROM users WHERE username = ?', [username]).then(results => {
       const user = results[0];
-    
-    console.log(user)
     if(user == undefined) {
       // Username not found
       console.log("HTTP Basic username not found");
@@ -45,13 +43,84 @@ passport.use(new BasicStrategy(
 }
 ));
 
-app.get('/httpBasicProtectedResource',
-        passport.authenticate('basic', { session: false }),
-        (req, res) => {
-  res.json({
-    yourProtectedResource: "profit"
-  });
-});
+const jwt = require('jsonwebtoken');
+const JwtStrategy = require('passport-jwt').Strategy,
+      ExtractJwt = require('passport-jwt').ExtractJwt;
+let jwtSecretKey = null;
+if(process.env.JWTKEY === undefined) {
+  jwtSecretKey = require('./jwt-key.json').secret;
+} else {
+  jwtSecretKey = process.env.JWTKEY;
+}
+
+
+let options = {}
+
+/* Configure the passport-jwt module to expect JWT
+   in headers from Authorization field as Bearer token */
+options.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+
+/* This is the secret signing key.
+   You should NEVER store it in code  */
+options.secretOrKey = jwtSecretKey;
+
+passport.use(new JwtStrategy(options, function(jwt_payload, done) {
+  console.log("Processing JWT payload for token content:");
+  console.log(jwt_payload);
+
+
+  /* Here you could do some processing based on the JWT payload.
+  For example check if the key is still valid based on expires property.
+  */
+  const now = Date.now() / 1000;
+  if(jwt_payload.exp > now) {
+    done(null, jwt_payload.user);
+  }
+  else {// expired
+    done(null, false);
+  }
+}));
+
+
+app.get(
+  '/jwtProtectedResource',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    console.log("jwt");
+    res.json(
+      {
+        status: "Successfully accessed protected resource with JWT",
+        user: req.user
+      }
+    );
+  }
+);
+
+app.get(
+  '/loginForJWT',
+  passport.authenticate('basic', { session: false }),
+  (req, res) => {
+    const body = {
+      id: req.user.id,
+      username: req.user.username,
+      email : req.user.email
+    };
+
+    const payload = {
+      user : body
+    };
+
+    const options = {
+      expiresIn: '1d'
+    }
+
+    /* Sign the token with payload, key and options.
+       Detailed documentation of the signing here:
+       https://github.com/auth0/node-jsonwebtoken#readme */
+    const token = jwt.sign(payload, jwtSecretKey, options);
+
+    return res.json({ token });
+})
 
 //General posting related calls
 
@@ -62,7 +131,8 @@ app.get('/postings', (req, res) => {
     });
   })
 
-app.post('/postings', (req, res) => {
+app.post('/postings',
+ (req, res) => {
     const ajv = new Ajv();
     const validate = ajv.compile(postingsSchema)
     const valid = validate(req.body)
@@ -154,14 +224,22 @@ app.post('/users', (req, res) => {
   const validate = ajv.compile(userSchema)
   const valid = validate(req.body)
   if(valid == true){
-    const hashedPassword = bcrypt.hashSync(req.body.password, 6)
-    db.query('INSERT INTO users (id, username, password, firstname, lastname, dateJoined, email, location) VALUES (?,?,?,?,?,?,?,?)',
-    [uuidv4(), req.body.username, hashedPassword, req.body.firstname, req.body.lastname,
-      req.body.dateJoined, req.body.email, req.body.location])
-      res.send("OK")
-  } else {
+    db.query('SELECT COUNT(*) AS username FROM users WHERE username = ?', [req.body.username]).then(dbResults => {
+      if(dbResults[0].username >= 1){
+        res.send("Username Taken")
+      } 
+      else {
+        const hashedPassword = bcrypt.hashSync(req.body.password, 6)
+        db.query('INSERT INTO users (id, username, password, firstname, lastname, dateJoined, email, location) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP,?,?)',
+        [uuidv4(), req.body.username, hashedPassword, req.body.firstname, req.body.lastname,
+          req.body.dateJoined, req.body.email, req.body.location])
+          res.send("OK")
+        }
+      })
+    }
+    else {
     res.send("Not OK")
-  }
+    }
 })
 
   /* DB init */
