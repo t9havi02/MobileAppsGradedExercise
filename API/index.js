@@ -6,6 +6,7 @@ const express = require('express');
 const Ajv = require('ajv').default;
 const postingsSchema = require('./schemas/postingsSchema.json')
 const categorySchema = require('./schemas/categorySchema.json')
+const locationSchema = require('./schemas/locationSchema.json')
 const userSchema = require('./schemas/userSchema.json')
 const app = express();
 const bodyParser = require('body-parser');
@@ -176,14 +177,14 @@ app.post('/postings/:postingId', passport.authenticate('jwt', { session: false }
 
 //Category related calls
 
-app.get('/postings/category', (req,res) => {
+app.get('/category', (req,res) => {
   db.query('SELECT * FROM categories').then(results=> {
     console.log(results)
     res.json({ categoryData: results})
   });
 })
 
-app.post('/postings/category', (req, res) => {
+app.post('/category', (req, res) => {
   const ajv = new Ajv();
   const validate = ajv.compile(categorySchema)
   const valid = validate(req.body)
@@ -198,11 +199,63 @@ app.post('/postings/category', (req, res) => {
   }
 })
 
-app.get('/postings/category/:categoryId', (req, res) => {
+app.get('/category/:categoryId', (req, res) => {
   var categoryId = req.params.categoryId;
   db.query('SELECT * FROM postings WHERE category = ?', [categoryId]).then(results => {
     console.log(results)
     res.json({ postingsData: results})
+  })
+})
+
+
+//Location related calls
+
+app.get('/location', (req,res) => {
+  db.query('SELECT * FROM locations').then(results=> {
+    console.log(results)
+    res.json({ locationData: results})
+  });
+})
+
+app.post('/location', (req, res) => {
+  const ajv = new Ajv();
+  const validate = ajv.compile(locationSchema)
+  const valid = validate(req.body)
+  if(valid == true){
+    res.sendStatus(200)
+    db.query(
+      'INSERT INTO locations (id, locationName) VALUES (?, ?)',
+      [uuidv4(), req.body.locationName]
+  )
+  } else {
+    res.send("Not OK")
+  }
+})
+
+app.get('/location/:locationId', (req, res) => {
+  var locationId = req.params.locationId;
+  db.query('SELECT * FROM locations WHERE id = ?', [locationId]).then(results => {
+    console.log(results)
+    var locationName = results[0].locationName;
+    db.query('SELECT * FROM postings WHERE location = ?', [locationName]).then(results2 => {
+      console.log(results2)
+      res.send({ postingsData: results2})
+    })
+  })
+})
+
+//Combined location and category related calls
+
+app.get('/location/:locationId/category/:categoryId', (req, res) => {
+  var locationId = req.params.locationId;
+  var categoryId = req.params.categoryId;
+  db.query('SELECT * FROM locations WHERE id = ?', [locationId]).then(results => {
+    console.log(results)
+    var locationName = results[0].locationName;
+    db.query('SELECT * FROM postings WHERE location = ? AND category = ?', [locationName, categoryId]).then(results2 => {
+      console.log(results2)
+      res.send({ postingsData: results2})
+    })
   })
 })
 
@@ -269,6 +322,10 @@ Promise.all(
         db.query(`CREATE TABLE IF NOT EXISTS categories(
           id VARCHAR(255) PRIMARY KEY,
           categoryName VARCHAR(255)
+        )`),
+        db.query(`CREATE TABLE IF NOT EXISTS locations(
+          id VARCHAR(255) PRIMARY KEY,
+          locationName VARCHAR(255)
         )`)
   
         // Add more table create statements if you need more tables
