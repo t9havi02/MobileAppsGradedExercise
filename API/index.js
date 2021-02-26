@@ -124,9 +124,9 @@ app.post('/postings',passport.authenticate('jwt', { session: false }),
     const valid = validate(req.body)
     if(valid == true){
       db.query(
-        'INSERT INTO postings (id, title, description, category, location, image, price, dateOfPosting, delivery, sellerName, sellerPhone, sellerEmail) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+        'INSERT INTO postings (id, title, description, category, location, image, price, dateOfPosting, delivery, sellerName, sellerPhone, sellerEmail) VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP,?,?,?,?)',
         [uuidv4(), req.body.title, req.body.description, req.body.category, req.body.location,
-          req.body.image, req.body.price, req.body.dateOfPosting, req.body.delivery,
+          req.body.image, req.body.price, req.body.delivery,
           req.user.username, req.body.sellerPhone, req.body.sellerEmail]
         )
         res.send("OK")
