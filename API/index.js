@@ -81,21 +81,6 @@ passport.use(new JwtStrategy(options, function(jwt_payload, done) {
   }
 }));
 
-
-app.get(
-  '/jwtProtectedResource',
-  passport.authenticate('jwt', { session: false }),
-  (req, res) => {
-    console.log("jwt");
-    res.json(
-      {
-        status: "Successfully accessed protected resource with JWT",
-        user: req.user
-      }
-    );
-  }
-);
-
 app.get(
   '/loginForJWT',
   passport.authenticate('basic', { session: false }),
@@ -131,7 +116,7 @@ app.get('/postings', (req, res) => {
     });
   })
 
-app.post('/postings',
+app.post('/postings',passport.authenticate('jwt', { session: false }),
  (req, res) => {
     const ajv = new Ajv();
     const validate = ajv.compile(postingsSchema)
@@ -141,7 +126,7 @@ app.post('/postings',
         'INSERT INTO postings (id, title, description, category, location, image, price, dateOfPosting, delivery, sellerName, sellerPhone, sellerEmail) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
         [uuidv4(), req.body.title, req.body.description, req.body.category, req.body.location,
           req.body.image, req.body.price, req.body.dateOfPosting, req.body.delivery,
-          req.body.sellerName, req.body.sellerPhone, req.body.sellerEmail]
+          req.user.username, req.body.sellerPhone, req.body.sellerEmail]
         )
         res.send("OK")
     } else {
@@ -161,20 +146,31 @@ app.get('/postings/:postingId', (req, res) => {
   })
 })
 
-app.post('/postings/:postingId', (req, res) => {
+app.post('/postings/:postingId', passport.authenticate('jwt', { session: false }),
+ (req, res) => {
   var postingId = req.params.postingId;
   console.log(postingId)
   const ajv = new Ajv();
   const validate = ajv.compile(postingsSchema)
   const valid = validate(req.body)
   if(valid == true){
-    db.query('UPDATE postings SET title = ?, description = ?, category = ?, location = ?, image = ?, price = ?, dateOfPosting = ?, delivery = ?, sellerName = ?, sellerPhone = ?, sellerEmail = ? WHERE id = ?',
-    [req.body.title, req.body.description, req.body.category, req.body.location,
-      req.body.image, req.body.price, req.body.dateOfPosting, req.body.delivery,
-      req.body.sellerName, req.body.sellerPhone, req.body.sellerEmail, postingId])
-      res.send("OK")
-  } else {
-    res.send("Not OK")
+    db.query('SELECT COUNT(*) AS username FROM postings WHERE id = ? AND sellerName = ?', [postingId, req.user.username]).then(dbResults => {
+      console.log(req.user.username)
+      console.log(dbResults)
+      if(dbResults[0].username == 1){
+        db.query('UPDATE postings SET title = ?, description = ?, category = ?, location = ?, image = ?, price = ?, delivery = ?, sellerPhone = ?, sellerEmail = ? WHERE id = ?',
+        [req.body.title, req.body.description, req.body.category, req.body.location,
+          req.body.image, req.body.price, req.body.delivery,
+          req.body.sellerPhone, req.body.sellerEmail, postingId])
+          res.send("OK")
+        }
+        else {
+          res.send("Unauthorized")
+        }
+    })
+  }
+  else {
+    res.send("Request Body Invalid")
   }
 })
 
