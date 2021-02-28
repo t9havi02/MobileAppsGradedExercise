@@ -1,0 +1,30 @@
+[
+    {
+        "id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+        "title": "2kg dumbbells",
+        "description": "Very good condition, pair of 2kg dumbbells!",
+        "category": "Fitness",
+        "location": "Oulu, FI",
+        "image": "http://image.thissite.com/images/123.png",
+        "price": 23.99,
+        "dateOfPosting": "2021-01-01",
+        "delivery": "Pick up",
+        "sellerName": "Mike Jones",
+        "sellerPhone": "0881231234",
+        "sellerEmail": "seller@thisstore.com"
+      },
+      {
+        "id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+        "title": "Used Phone",
+        "description": "Cracked screen, still works fine",
+        "category": "Electronics",
+        "location": "Helsinki, FI",
+        "image": "http://image.thissite.com/images/123.png",
+        "price": 233.99,
+        "dateOfPosting": "2021-01-01",
+        "delivery": "Pick up",
+        "sellerName": "Mike Jones",
+        "sellerPhone": "0881231234",
+        "sellerEmail": "seller@thisstore.com"
+      }
+]

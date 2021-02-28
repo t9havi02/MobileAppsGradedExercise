@@ -1,10 +1,13 @@
 import React from 'react'
 import { StyleSheet, Text, View} from 'react-native';
+import Posts from './posts.js'
+
+
 
 export default function body() {
     return (
         <View style={styles.body}>
-            <Text>body</Text>
+            <Posts/>
         </View>
     )
 }
