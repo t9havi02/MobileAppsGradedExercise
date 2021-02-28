@@ -1,4 +1,3 @@
-const port = 4000;
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 const express = require('express');
@@ -15,7 +14,7 @@ const users = require('./users');
 const categories = require('./categories.json')
 const locations = require('./locations')
 
-
+app.set('port', (process.env.PORT || 80));
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -268,7 +267,6 @@ app.get('/users/:userId', (req, res) => {
   res.json(p)
 })
 
-  /* DB init */
-app.listen(port, () => {
-        console.log(`Server API listening on http://localhost:${port}\n`);
-    });
+  app.listen(app.get('port'), () => {
+    console.log(`Server API listening on https://t9havi02gradedexerciseapi.herokuapp.com/:`, app.get('port'));
+});
