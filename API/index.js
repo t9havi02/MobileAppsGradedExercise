@@ -1,4 +1,3 @@
-const db = require('./db');
 const port = 4000;
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
@@ -11,6 +10,10 @@ const userSchema = require('./schemas/userSchema.json')
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const posts = require('./posts');
+const users = require('./users');
+const categories = require('./categories.json')
+const locations = require('./locations')
 
 
 
@@ -25,8 +28,7 @@ const BasicStrategy = require('passport-http').BasicStrategy;
 passport.use(new BasicStrategy(
   function(username, password, done) {
 
-    db.query('SELECT * FROM users WHERE username = ?', [username]).then(results => {
-      const user = results[0];
+    const user = users.getUserByName(username);
     if(user == undefined) {
       // Username not found
       console.log("HTTP Basic username not found");
@@ -40,8 +42,7 @@ passport.use(new BasicStrategy(
       return done(null, false, { message: "HTTP Basic password not found" });
     }
     return done(null, user);
-  })
-}
+  }
 ));
 
 const jwt = require('jsonwebtoken');
@@ -111,24 +112,27 @@ app.get(
 //General posting related calls
 
 app.get('/postings', (req, res) => {
-    db.query('SELECT * FROM postings').then(results => {
-      console.log(results)
-      res.json({ postingData: results })
+    const p = posts.getAllPosts();
+    res.json(p);
     });
-  })
 
-app.post('/postings',passport.authenticate('jwt', { session: false }),
+app.post('/postings', passport.authenticate('jwt', { session: false }),
  (req, res) => {
     const ajv = new Ajv();
     const validate = ajv.compile(postingsSchema)
     const valid = validate(req.body)
     if(valid == true){
-      db.query(
-        'INSERT INTO postings (id, title, description, category, location, image, price, dateOfPosting, delivery, sellerName, sellerPhone, sellerEmail) VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP,?,?,?,?)',
-        [uuidv4(), req.body.title, req.body.description, req.body.category, req.body.location,
-          req.body.image, req.body.price, req.body.delivery,
-          req.user.username, req.body.sellerPhone, req.body.sellerEmail]
-        )
+        posts.InsertPost(req.body.title,
+          req.body.description,
+          req.body.category,
+          req.body.location,
+          req.body.image,
+          req.body.price,
+          req.body.dateOfPosting,
+          req.body.delivery,
+          req.body.sellerName,
+          req.body.sellerPhone,
+          req.body.sellerEmail)
         res.send("OK")
     } else {
       res.send("Not OK")
@@ -141,11 +145,10 @@ app.post('/postings',passport.authenticate('jwt', { session: false }),
 app.get('/postings/:postingId', (req, res) => {
   var postingId = req.params.postingId;
   console.log(postingId)
-  db.query('SELECT * FROM postings WHERE id = ?', [postingId]).then(results => {
-    console.log(results)
-    res.json( results )
+  const p = posts.getPost(postingId)
+  res.send(p)
   })
-})
+
 
 app.post('/postings/:postingId', passport.authenticate('jwt', { session: false }),
  (req, res) => {
@@ -155,20 +158,30 @@ app.post('/postings/:postingId', passport.authenticate('jwt', { session: false }
   const validate = ajv.compile(postingsSchema)
   const valid = validate(req.body)
   if(valid == true){
-    db.query('SELECT COUNT(*) AS username FROM postings WHERE id = ? AND sellerName = ?', [postingId, req.user.username]).then(dbResults => {
-      console.log(req.user.username)
-      console.log(dbResults)
-      if(dbResults[0].username == 1){
-        db.query('UPDATE postings SET title = ?, description = ?, category = ?, location = ?, image = ?, price = ?, delivery = ?, sellerPhone = ?, sellerEmail = ? WHERE id = ?',
-        [req.body.title, req.body.description, req.body.category, req.body.location,
-          req.body.image, req.body.price, req.body.delivery,
-          req.body.sellerPhone, req.body.sellerEmail, postingId])
+    const p = posts.getPost(postingId)
+    const pi = posts.getPostIndex(postingId)
+    console.log(p.sellerName)
+    console.log(req.user.username)
+      if(p.sellerName == req.user.username){
+        posts.UpdatePost(
+          postingId,
+          req.body.title,
+          req.body.description,
+          req.body.category,
+          req.body.location,
+          req.body.image,
+          req.body.price,
+          req.body.dateOfPosting,
+          req.body.delivery,
+          req.body.sellerName,
+          req.body.sellerPhone,
+          req.body.sellerEmail,
+          pi)
           res.send("OK")
         }
         else {
           res.send("Unauthorized")
         }
-    })
   }
   else {
     res.send("Request Body Invalid")
@@ -178,70 +191,30 @@ app.post('/postings/:postingId', passport.authenticate('jwt', { session: false }
 //Category related calls
 
 app.get('/category', (req,res) => {
-  db.query('SELECT * FROM categories').then(results=> {
-    console.log(results)
-    res.json({ categoryData: results})
-  });
-})
-
-app.post('/category', (req, res) => {
-  const ajv = new Ajv();
-  const validate = ajv.compile(categorySchema)
-  const valid = validate(req.body)
-  if(valid == true){
-    res.sendStatus(200)
-    db.query(
-      'INSERT INTO categories (id, categoryName) VALUES (?, ?)',
-      [uuidv4(), req.body.categoryName]
-  )
-  } else {
-    res.send("Not OK")
-  }
+  const c = categories
+  res.json(c)
 })
 
 app.get('/category/:categoryId', (req, res) => {
   var categoryId = req.params.categoryId;
-  db.query('SELECT * FROM postings WHERE category = ?', [categoryId]).then(results => {
-    console.log(results)
-    res.json({ postingsData: results})
+  const p = posts.getAllCategoryPosts(categoryId);
+  res.json(p)
   })
-})
+
 
 
 //Location related calls
 
 app.get('/location', (req,res) => {
-  db.query('SELECT * FROM locations').then(results=> {
-    console.log(results)
-    res.json({ locationData: results})
-  });
-})
-
-app.post('/location', (req, res) => {
-  const ajv = new Ajv();
-  const validate = ajv.compile(locationSchema)
-  const valid = validate(req.body)
-  if(valid == true){
-    res.sendStatus(200)
-    db.query(
-      'INSERT INTO locations (id, locationName) VALUES (?, ?)',
-      [uuidv4(), req.body.locationName]
-  )
-  } else {
-    res.send("Not OK")
-  }
+  const l = locations.getAllLocations()
+  res.json(l)
 })
 
 app.get('/location/:locationId', (req, res) => {
   var locationId = req.params.locationId;
-  db.query('SELECT * FROM locations WHERE id = ?', [locationId]).then(results => {
-    console.log(results)
-    var locationName = results[0].locationName;
-    db.query('SELECT * FROM postings WHERE location = ?', [locationName]).then(results2 => {
-      console.log(results2)
-      res.send({ postingsData: results2})
-    })
-  })
+  const l = locations.getAllLocationPosts(locationId)
+  const p = posts.getAllLocationPosts(l[0].locationName);
+  res.json(p)
 })
 
 //Combined location and category related calls
@@ -249,91 +222,53 @@ app.get('/location/:locationId', (req, res) => {
 app.get('/location/:locationId/category/:categoryId', (req, res) => {
   var locationId = req.params.locationId;
   var categoryId = req.params.categoryId;
-  db.query('SELECT * FROM locations WHERE id = ?', [locationId]).then(results => {
-    console.log(results)
-    var locationName = results[0].locationName;
-    db.query('SELECT * FROM postings WHERE location = ? AND category = ?', [locationName, categoryId]).then(results2 => {
-      console.log(results2)
-      res.send({ postingsData: results2})
+  const l = locations.getAllLocationPosts(locationId)
+    var locationName = l[0].locationName;
+    const p = posts.getAllLocationPosts(locationName);
+    const final = p.filter(p => p.category == categoryId)
+    res.json(final)
     })
-  })
-})
 
 //User related calls
-
-app.get('/users', (req, res) => {
-  db.query('SELECT id, username, firstname, lastname, dateJoined FROM users').then(results => {
-    console.log(results)
-    res.json({ userData: results })
-  })
-})
 
 app.post('/users', (req, res) => {
   const ajv = new Ajv();
   const validate = ajv.compile(userSchema)
   const valid = validate(req.body)
   if(valid == true){
-    db.query('SELECT COUNT(*) AS username FROM users WHERE username = ?', [req.body.username]).then(dbResults => {
-      if(dbResults[0].username >= 1){
-        res.send("Username Taken")
-      } 
-      else {
-        const hashedPassword = bcrypt.hashSync(req.body.password, 6)
-        db.query('INSERT INTO users (id, username, password, firstname, lastname, dateJoined, email, location) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP,?,?)',
-        [uuidv4(), req.body.username, hashedPassword, req.body.firstname, req.body.lastname,
-          req.body.dateJoined, req.body.email, req.body.location])
-          res.send("OK")
-        }
-      })
+    const u = users.getUserByName(req.body.username)
+    if(u != undefined){
+      if(u.username == req.body.username){
+        console.log("Username taken")
+        res.send("Username taken")
+      }
+      else{
+        console.log("Username allowed")
+        res.send("Username allowed")
+      }
     }
-    else {
-    res.send("Not OK")
+    else{
+      const hashedPassword = bcrypt.hashSync(req.body.password, 6)
+      users.addUser(req.body.username, hashedPassword, req.body.firstname, req.body.lastname,
+        req.body.dateJoined, req.body.email, req.body.location)
+        res.sendStatus(201)
     }
+  }
+  else{
+    res.send("Bad request body. Has missing or additional information")
+  }
+})
+
+app.get('/users/:userId', (req, res) => {
+  var userId = req.params.userId
+  const u = users.getUserById(userId)
+  console.log(u.username)
+  const p = posts.getAllUserPosts(u.username)
+  console.log(p)
+  res.json(p)
 })
 
   /* DB init */
-Promise.all(
-    [
-        db.query(`CREATE TABLE IF NOT EXISTS postings(
-            id VARCHAR(255) PRIMARY KEY,
-            title VARCHAR(60),
-            description VARCHAR(480),
-            category VARCHAR(48),
-            location VARCHAR(100),
-            image VARCHAR(240),
-            price DOUBLE,
-            dateOfPosting VARCHAR(240),
-            delivery VARCHAR(24),
-            sellerName VARCHAR(120),
-            sellerPhone VARCHAR(24),
-            sellerEmail VARCHAR(120)
-        )`),
-        db.query(`CREATE TABLE IF NOT EXISTS users(
-            id VARCHAR(255) PRIMARY KEY,
-            username VARCHAR(255),
-            password VARCHAR(255),
-            firstname VARCHAR(255),
-            lastname VARCHAR(255),
-            dateJoined VARCHAR(255),
-            email VARCHAR(255),
-            location VARCHAR(255),
-            UNIQUE (username)
-        )`),
-        db.query(`CREATE TABLE IF NOT EXISTS categories(
-          id VARCHAR(255) PRIMARY KEY,
-          categoryName VARCHAR(255)
-        )`),
-        db.query(`CREATE TABLE IF NOT EXISTS locations(
-          id VARCHAR(255) PRIMARY KEY,
-          locationName VARCHAR(255)
-        )`)
-  
-        // Add more table create statements if you need more tables
-    ]
-  ).then(() => {
-    console.log('databases initialized');
-    app.listen(port, () => {
+app.listen(port, () => {
         console.log(`Server API listening on http://localhost:${port}\n`);
     });
-  })
-  .catch(error => console.log(error));
