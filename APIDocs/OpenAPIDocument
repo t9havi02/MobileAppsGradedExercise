@@ -1,0 +1,746 @@
+openapi: 3.0.0
+info:
+  title: Web Interfaces Graded Exercise
+  version: '1.0'
+  description: API Documentation for the graded exercise of the Web Interfaces course.
+  contact:
+    name: Ville Häyrynen
+    email: t9havi02@students.oamk.fi
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /postings:
+    get:
+      summary: Get all postings
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  postingData:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/posting'
+              examples:
+                example-1:
+                  value:
+                    postingData:
+                      - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        title: 2kg dumbbells
+                        description: 'Very good condition, pair of 2kg dumbbells!'
+                        category: Fitness
+                        location: 'Oulu, FI'
+                        image: 'http://image.thissite.com/images/123.png'
+                        price: 23.99
+                        dateOfPosting: '2021-01-01'
+                        delivery: Pick up
+                        sellerName: Mike Jones
+                        sellerPhone: '0881231234'
+                        sellerEmail: seller@thisstore.com
+      operationId: getPostings
+      description: Get all postings currently available.
+    post:
+      summary: Add a new posting
+      operationId: postPostings
+      description: Add a new posting.
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: >-
+            Bad Request: Body is missing information or the information is
+            invalid
+        '401':
+          description: Unauthorized to create a posting.
+        '418':
+          description: I'm a teapot (RFC 2324) Posting with this ID already exists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/posting'
+            examples:
+              example-1:
+                value:
+                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  title: 2kg dumbbells
+                  description: 'Very good condition, pair of 2kg dumbbells!'
+                  category: Fitness
+                  location: 'Oulu, FI'
+                  image: 'http://image.thissite.com/images/123.png'
+                  price: 23.99
+                  dateOfPosting: '2021-01-01'
+                  delivery: Pick up
+                  sellerName: Mike Jones
+                  sellerPhone: '0881231234'
+                  sellerEmail: seller@thisstore.com
+        description: Information of newly created posting.
+      parameters:
+        - schema:
+            type: string
+            default: application/json
+          in: header
+          name: content-type
+          description: The content type of the body
+          required: true
+  '/postings/{postingId}':
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+        name: postingId
+        in: path
+        required: true
+        description: Unique posting identifier
+    get:
+      summary: Get a posting by posting ID
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/posting'
+              examples:
+                example-1:
+                  value:
+                    id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    title: 2kg dumbbells
+                    description: 'Very good condition, pair of 2kg dumbbells!'
+                    category: Fitness
+                    location: 'Oulu, FI'
+                    image: 'http://image.thissite.com/images/123.png'
+                    price: 23.99
+                    dateOfPosting: '2021-01-01'
+                    delivery: Pick up
+                    sellerName: Mike Jones
+                    sellerPhone: '0881231234'
+                    sellerEmail: seller@thisstore.com
+        '404':
+          description: Information on posting with given postingId was not found.
+      operationId: getPostingsByID
+      description: Get information of a single posting by using its ID.
+      parameters: []
+    put:
+      summary: Update a posting by posting ID
+      operationId: putPostingsByID
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized to modify posting with given postingId.
+        '404':
+          description: Information on posting with given postingId was not found.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/posting'
+            examples:
+              example-1:
+                value:
+                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  title: 2kg dumbbells
+                  description: 'Very good condition, pair of 2kg dumbbells!'
+                  category: Fitness
+                  location: 'Oulu, FI'
+                  image: 'http://image.thissite.com/images/123.png'
+                  price: 23.99
+                  dateOfPosting: '2021-01-01'
+                  delivery: Pick up
+                  sellerName: Mike Jones
+                  sellerPhone: '0881231234'
+                  sellerEmail: seller@thisstore.com
+          application/xml:
+            schema:
+              type: object
+              properties: {}
+          multipart/form-data:
+            schema:
+              type: object
+              properties: {}
+          text/html:
+            schema:
+              type: object
+              properties: {}
+          text/plain:
+            schema:
+              type: object
+              properties: {}
+          application/EDI-X12:
+            schema:
+              type: object
+              properties: {}
+          application/EDIFACT:
+            schema:
+              type: object
+              properties: {}
+          application/atom+xml:
+            schema:
+              type: object
+              properties: {}
+          application/font-woff:
+            schema:
+              type: object
+              properties: {}
+        description: Updated version of the posting information.
+      description: Update information of a single post by using its ID.
+      parameters:
+        - schema:
+            type: string
+            default: application/json
+          in: header
+          name: content-type
+          description: The content type of the body
+    delete:
+      summary: Delete a posting by posting ID
+      operationId: deletePostingsByID
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized to delete posting with given postingId.
+        '404':
+          description: Information on posting with given postingId was not found.
+      description: Delete a single posting by using its ID.
+  '/postings/category/{categoryId}':
+    parameters:
+      - schema:
+          type: string
+          example: Fitness
+        name: categoryId
+        in: path
+        required: true
+        description: Unique category identifier
+    get:
+      summary: Get all postings in a category by category ID
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  postingData:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/posting'
+              examples:
+                example-1:
+                  value:
+                    postingsData:
+                      - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        title: 2kg dumbbells
+                        description: 'Very good condition, pair of 2kg dumbbells!'
+                        category: Fitness
+                        location: 'Oulu, FI'
+                        image: 'http://image.thissite.com/images/123.png'
+                        price: 23.99
+                        dateOfPosting: '2021-01-01'
+                        delivery: Pick up
+                        sellerName: Mike Jones
+                        sellerPhone: '0881231234'
+                        sellerEmail: seller@thisstore.com
+        '404':
+          description: Category with given categoryId not found.
+      operationId: getPostingsByCategoryID
+      description: Get all postings in the matching category by using the category ID.
+  /postings/category:
+    get:
+      summary: Get all posting categories.
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/categories'
+              examples:
+                example-1:
+                  value:
+                    categories:
+                      - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        categoryName: Fitness
+      operationId: getPostingsCategory
+      description: Get all current posting categories available.
+    parameters: []
+  /postings/location:
+    get:
+      summary: Get all posting locations.
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/locations'
+              examples:
+                example-1:
+                  value:
+                    locations:
+                      - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        locationName: 'Oulu, Finland'
+      operationId: getPostingsLocation
+      description: Get all current posting locations available.
+  '/postings/location/{locationId}':
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+        name: locationId
+        in: path
+        required: true
+        description: Unique location identifier
+    get:
+      summary: Get all postings in a location by location ID
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  postingData:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/posting'
+        '404':
+          description: Location with given locationId not found.
+      operationId: getPostingsByLocationID
+      description: Get all postings in the matching location by using the location ID.
+  /users:
+    get:
+      summary: Get all users
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userData:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/public-user'
+              examples:
+                example-1:
+                  value:
+                    userData:
+                      - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        username: ExampleSeller
+                        firstname: Mike
+                        lastname: Jones
+                        dateJoined: '2021-01-01'
+                        email: mikejones@selling.com
+      operationId: getUsers
+      description: Get all users currently available.
+    post:
+      summary: Add a new user
+      operationId: postUsers
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: >-
+            Bad Request: Body is missing information or the information is
+            invalid.
+        '418':
+          description: 'I''m a teapot (RFC 2324): User with given username already exists.'
+      description: Add a new user account.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/full-user'
+            examples:
+              example-1:
+                value:
+                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  username: ExampleSeller
+                  password: thisismypassword
+                  firstname: Mike
+                  lastname: Jones
+                  dateJoined: '2020-01-01'
+                  email: mikejones@selling.com
+                  location: 'Oulu, Finland'
+        description: Full information required to create an account.
+      parameters:
+        - schema:
+            type: string
+            default: application/json
+          in: header
+          name: content-type
+          description: The content-type of the body
+          required: true
+  '/users/{userId}':
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+        name: userId
+        in: path
+        required: true
+        description: Unique user identifier
+    get:
+      summary: Get a user by user ID
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/public-user'
+              examples:
+                example-1:
+                  value:
+                    id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    username: ExampleSeller
+                    firstname: Mike
+                    lastname: Jones
+                    dateJoined: '2021-01-01'
+                    email: mikejones@selling.com
+        '404':
+          description: User with given userId not found.
+      operationId: getUsersByID
+      description: Get a single user information by user ID.
+    put:
+      summary: Update user information by user ID
+      operationId: putUsersByID
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized to update user information of user with given userId.
+        '404':
+          description: User with given userId not found.
+      description: Update information of a single user account by user ID.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/full-user'
+            examples:
+              example-1:
+                value:
+                  id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                  username: ExampleSeller
+                  password: thisismypassword
+                  firstname: Mike
+                  lastname: Jones
+                  dateJoined: '2020-01-01'
+                  email: mikejones@selling.com
+                  location: 'Oulu, Finland'
+        description: The updated user information of the user.
+  '/postings/{postingId}/category/{categoryId}':
+    parameters:
+      - schema:
+          type: string
+        name: postingId
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: categoryId
+        in: path
+        required: true
+    get:
+      summary: Get all postings in same location and category by IDs
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  postingData:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/posting'
+              examples:
+                example-1:
+                  value:
+                    postingData:
+                      - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                        title: 2kg dumbbells
+                        description: 'Very good condition, pair of 2kg dumbbells!'
+                        category: Fitness
+                        location: 'Oulu, FI'
+                        image: 'http://image.thissite.com/images/123.png'
+                        price: 23.99
+                        dateOfPosting: '2021-01-01'
+                        delivery: Pick up
+                        sellerName: Mike Jones
+                        sellerPhone: '0881231234'
+                        sellerEmail: seller@thisstore.com
+        '404':
+          description: Location or Category with given ID not found.
+      operationId: getPostingsByLocationCategoryID
+      description: Get all postings that have the matching given categoryId and locationId.
+components:
+  schemas:
+    posting:
+      title: posting
+      type: object
+      description: Information of a single posting.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of a posting.
+        title:
+          type: string
+          example: 2kg dumbbells
+          minLength: 5
+          maxLength: 60
+          description: Title of the posting ranging from 5 to 60 characters.
+        description:
+          type: string
+          example: 'Very good condition, pair of 2kg dumbbells!'
+          maxLength: 480
+          description: Description of item(s) in posting up to 480 characters.
+        category:
+          example: Fitness
+          description: A category for the item(s) posting.
+          type: string
+        location:
+          type: string
+          example: 'Oulu, FI'
+          description: The location of the posting item(s).
+        image:
+          type: string
+          format: uri
+          example: 'http://image.thissite.com/images/123.png'
+          description: URI for the image to be shown the posting.
+        price:
+          type: number
+          format: double
+          example: 23.99
+          description: Price of the item(s) in posting
+        dateOfPosting:
+          type: string
+          format: date
+          example: '2021-01-01'
+          description: Creation date of the posting in RFC3339 full-date format.
+        delivery:
+          type: string
+          example: Pick up
+          description: Method of delivery for the item(s) in the posting.
+        sellerName:
+          type: string
+          example: Mike Jones
+          description: Name of the seller.
+        sellerPhone:
+          type: string
+          example: '0881231234'
+          description: Phone number of the seller.
+        sellerEmail:
+          type: string
+          example: seller@thisstore.com
+          description: Email of the seller.
+      required:
+        - id
+        - title
+        - description
+        - category
+        - location
+        - image
+        - price
+        - dateOfPosting
+        - delivery
+        - sellerName
+      x-examples:
+        example-1:
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          title: 2kg dumbbells
+          description: 'Very good condition, pair of 2kg dumbbells!'
+          category: Fitness
+          location: 'Oulu, FI'
+          image: 'http://image.thissite.com/images/123.png'
+          price: 23.99
+          dateOfPosting: '2021-01-01'
+          delivery: Pick up
+          sellerName: Mike Jones
+          sellerPhone: '0881231234'
+          sellerEmail: seller@thisstore.com
+    categories:
+      title: categories
+      type: object
+      description: JSON containing id and name of all posting categories.
+      properties:
+        categories:
+          type: array
+          description: Array containing all category objects.
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+                description: Unique identifier for a category.
+              categoryName:
+                type: string
+                example: Fitness
+                description: Name of the category.
+            required:
+              - id
+              - categoryName
+      required:
+        - categories
+      x-examples:
+        example-1:
+          categories:
+            - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              categoryName: Fitness
+    locations:
+      title: location
+      type: object
+      description: JSON containing the id and name of all posting locations.
+      properties:
+        locations:
+          type: array
+          description: Array containing all location objects.
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+                description: Unique identifier for a location.
+              locationName:
+                type: string
+                description: 'Name of the location in format CITY, COUNTRY'
+                example: 'Oulu, Finland'
+            required:
+              - id
+              - locationName
+      required:
+        - locations
+      x-examples:
+        example-1:
+          locations:
+            - id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+              locationName: 'Oulu, Finland'
+    public-user:
+      title: public-user
+      type: object
+      description: Information in a publicly accessible user account.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique user identifier.
+        username:
+          type: string
+          example: ExampleSeller
+          description: A publicly visible username of a user account.
+          minLength: 4
+          maxLength: 15
+        firstname:
+          type: string
+          example: Mike
+          description: First name of the user.
+        lastname:
+          type: string
+          example: Jones
+          description: Last name of the user.
+        dateJoined:
+          type: string
+          format: date
+          description: User accounts time of creation in RFC3339 full-date format.
+          example: '2021-01-01'
+        email:
+          type: string
+          example: mikejones@selling.com
+          description: Email of the user.
+      required:
+        - id
+        - username
+        - firstname
+        - lastname
+        - dateJoined
+        - email
+      x-examples:
+        example-1:
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          username: ExampleSeller
+          firstname: Mike
+          lastname: Jones
+          dateJoined: '2021-01-01'
+          email: mikejones@selling.com
+    full-user:
+      title: full-user
+      type: object
+      description: All information on a single user account.
+      x-examples:
+        example-1:
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          username: ExampleSeller
+          password: thisismypassword
+          firstname: Mike
+          lastname: Jones
+          dateJoined: '2020-01-01'
+          email: mikejones@selling.com
+          location: 'Oulu, Finland'
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique user identifier.
+        username:
+          type: string
+          minLength: 4
+          maxLength: 24
+          example: ExampleSeller
+          description: Publicly visible username of the use account. 4-24 characters.
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: thisismypassword
+          description: 'User-defined password of the account. Minimum length: 8 characters. '
+        firstname:
+          type: string
+          description: First name of the user.
+          example: Mike
+        lastname:
+          type: string
+          description: Last name of the user.
+          example: Jones
+        dateJoined:
+          type: string
+          description: Timestamp of the user creation date in RFC3339 full-date format.
+          format: date
+          example: '2020-01-01'
+        email:
+          type: string
+          example: mikejones@selling.com
+          description: Email address of the user.
+        location:
+          type: string
+          example: 'Oulu, Finland'
+          description: 'Location of the user in format CITY, COUNTRY.'
+      required:
+        - id
+        - username
+        - password
+        - firstname
+        - lastname
+        - dateJoined
+        - email
+        - location
