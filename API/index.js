@@ -110,6 +110,11 @@ app.get(
 
 //General posting related calls
 
+app.get('/', (req, res) => {
+  res.send("Welcome to my graded exercise API. You can find detailed API info at https://t9havi02.stoplight.io/docs/webinterfacesgradedexercise-t9havi02/reference/WebInterfacesGradedExercise.v1.yaml")
+  res.send("But feel free to test out end points such as '/postings' or '/location/1/category/Fitness'")
+})
+
 app.get('/postings', (req, res) => {
     const p = posts.getAllPosts();
     res.json(p);
