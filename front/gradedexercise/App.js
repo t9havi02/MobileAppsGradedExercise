@@ -12,7 +12,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen 
-          name="Welcome"
+          name="Home"
           component={ Home }
         />
       </Stack.Navigator>

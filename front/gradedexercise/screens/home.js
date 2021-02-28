@@ -6,7 +6,7 @@ import Header from '../components/header'
 
 export default function home() {
     return (
-        <View style={styles.container}>
+      <View style={styles.container}>
         <Header />
         <Body />
         <StatusBar style="auto" />
@@ -21,5 +21,11 @@ const styles = StyleSheet.create({
       backgroundColor: '#fff',
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    header:{
+      flex: 1
+    },
+    body:{
+      flex: 9
     }
 });

@@ -1,42 +1,51 @@
 import { setStatusBarHidden } from 'expo-status-bar'
-import React, {useState} from 'react'
-import { View, Text, StyleSheet, Button } from 'react-native'
-import Description from './moreinfo'
+import React, {useState, useEffect} from 'react'
+import { View, Text, StyleSheet, Button, Dimensions, ScrollView } from 'react-native'
+import MoreInfo from './moreinfo'
 
+const width = Dimensions.get('window').width;
 
 export default function posts() {
 
-    const postData = require('../jsondata/posts.json')
-    const [shouldHide, updateHideState] = useState(true);
+    useEffect(() =>{
+        fetchPostInfo();
+    }, []);
 
-    function changeHideState(){
-        if(shouldHide){
-            updateHideState(false)
-        }
-        else{
-            updateHideState(true)
-        }
+    const [postData, setData] = useState([]);
+
+    const fetchPostInfo = async () => {
+        const data = await fetch(
+            'https://t9havi02gradedexerciseapi.herokuapp.com/postings')
+        const postData = await data.json();
+        setData(postData)
     }
 
+
+
     return (
-        <View>
-            <Text>{shouldHide}</Text>
+        <ScrollView>
             {postData.map(post => (
                 <>
-                <View>
+                <View style={styles.post}>
                     <Text>{post.title}</Text>
                     <Text>{post.sellerName}</Text>
                     <Text>{post.price}€</Text>
-                    <Description description={post.description}/>
+                    <Text>{post.location}</Text>
+                    <MoreInfo 
+                    description={post.description}
+                    sellerPhone={post.sellerPhone}
+                    sellerEmail={post.sellerEmail}/>
                 </View>
                 </>
             ))}
-        </View>
+        </ScrollView>
     )
+    
 }
 
 const styles = StyleSheet.create({
-    description: {
+    post:{
+        width: width * 0.8
     }
   });
   

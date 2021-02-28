@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import { View, Text, Button } from 'react-native'
 
-export default function description(props) {
+export default function moreinfo(props) {
 
     const [shouldHide, updateHideState] = useState(true);
 
@@ -21,6 +21,8 @@ export default function description(props) {
                 null :
                 <>
                 <Text>{props.description}</Text>
+                <Text>{props.sellerPhone}</Text>
+                <Text>{props.sellerEmail}</Text>
                 </>}
             </View>
             <Button
