@@ -1,13 +1,25 @@
-import React from 'react'
+import React, {useState} from 'react'
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View,} from 'react-native';
 import Body from '../components/body';
 import Header from '../components/header'
 
 export default function home() {
+  
+  const [shouldHide, updateHideState] = useState(true);
+
+  function changeHideState(){
+      if(shouldHide){
+          updateHideState(false)
+      }
+      else{
+          updateHideState(true)
+      }
+  }
+  
     return (
       <View style={styles.container}>
-        <Header />
+        <Header changeHide={changeHideState}/>
         <Body />
         <StatusBar style="auto" />
       </View>
